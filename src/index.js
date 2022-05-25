@@ -22,6 +22,13 @@ io.on("connection", (socket) => {
     io.emit("message", message); //emit to everyone
   });
 
+  socket.on("sendLocation", (coords) => {
+    io.emit(
+      "message",
+      `https://google.com/maps?q=${coords.latitude},${coords.longitude}`
+    );
+  });
+
   //code that runs when client disconnects
   socket.on("disconnect", () => {
     io.emit("message", "User has left the chat");
