@@ -2,6 +2,7 @@ const path = require("path");
 const http = require("http");
 const express = require("express");
 const socketio = require("socket.io");
+const Filter = require("bad-words");
 
 const app = express();
 const server = http.createServer(app);
@@ -18,15 +19,23 @@ io.on("connection", (socket) => {
   socket.emit("message", "Welcome!"); //emit to this particular connection
   socket.broadcast.emit("message", "New user joined the chat"); //send to everyone except to this particular socket
 
-  socket.on("sendMessage", (message) => {
+  socket.on("sendMessage", (message, callbackForAcknowledgement) => {
+    const filter = new Filter();
+
+    if (filter.isProfane(message)) {
+      return callbackForAcknowledgement("Profanity is not allowed!");
+    }
+
     io.emit("message", message); //emit to everyone
+    callbackForAcknowledgement(); //acknowledgement callback
   });
 
-  socket.on("sendLocation", (coords) => {
+  socket.on("sendLocation", (coords, callbackForAcknowledgement) => {
     io.emit(
       "message",
       `https://google.com/maps?q=${coords.latitude},${coords.longitude}`
     );
+    callbackForAcknowledgement();
   });
 
   //code that runs when client disconnects

@@ -9,7 +9,14 @@ document.querySelector("#message-form").addEventListener("submit", (e) => {
 
   const message = e.target.elements.message.value; //target represents target that we listen through the event on, and in this case it is the form, elements we have access to our elements property and we can access any of our inputs by their name, message.value gives out value of our input with name="message"
 
-  socket.emit("sendMessage", message);
+  //callback function is a event acknowledgement
+  socket.emit("sendMessage", message, (error) => {
+    if (error) {
+      return console.log(error);
+    }
+
+    console.log("Message delivered!");
+  });
 });
 
 document.querySelector("#send-location").addEventListener("click", () => {
@@ -18,9 +25,15 @@ document.querySelector("#send-location").addEventListener("click", () => {
   }
 
   navigator.geolocation.getCurrentPosition((position) => {
-    socket.emit("sendLocation", {
-      latitude: position.coords.latitude,
-      longitude: position.coords.longitude,
-    });
+    socket.emit(
+      "sendLocation",
+      {
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+      },
+      () => {
+        console.log("Location shared");
+      }
+    );
   });
 });
