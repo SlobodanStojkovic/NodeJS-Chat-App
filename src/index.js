@@ -7,6 +7,12 @@ const {
   generateMessage,
   generateLocationMessages,
 } = require("./utils/messages");
+const {
+  addUser,
+  removeUser,
+  getUser,
+  getUsersInRoom,
+} = require("./utils/users");
 
 const app = express();
 const server = http.createServer(app);
@@ -20,13 +26,20 @@ app.use(express.static(publicDirectoryPath));
 io.on("connection", (socket) => {
   console.log("New WebSocket connection");
 
-  socket.on("join", ({ username, room }) => {
-    socket.join(room);
+  socket.on("join", ({ username, room }, callbackForAcknowledgement) => {
+    // socket.id provides unique id for that particular connection
+    const { error, user } = addUser({ id: socket.id, username, room });
+
+    if (error) {
+      return callbackForAcknowledgement(error);
+    }
+
+    socket.join(user.room);
 
     socket.emit("message", generateMessage("Welcome!")); //emit to this particular connection
     socket.broadcast
-      .to(room)
-      .emit("message", generateMessage(`${username} has joined!`)); //send to everyone except to this particular socket in the room
+      .to(user.room)
+      .emit("message", generateMessage(`${user.username} has joined!`)); //send to everyone except to this particular socket in the room
 
     // socket.emit - send event to specific client
     // io.emit - send event to every connected client
@@ -58,7 +71,14 @@ io.on("connection", (socket) => {
 
   //code that runs when client disconnects
   socket.on("disconnect", () => {
-    io.emit("message", generateMessage("User has left the chat"));
+    const leftUser = removeUser(socket.id);
+
+    if (leftUser) {
+      io.to(leftUser.room).emit(
+        "message",
+        generateMessage(`${leftUser.username} has left the chat`)
+      );
+    }
   });
 });
 
