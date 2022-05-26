@@ -10,7 +10,9 @@
   </head>
   <body>
     <div class="chat">
-      <div class="chat__sidebar"></div>
+      <div id="sidebar" class="chat__sidebar">
+
+      </div>
       <div class="chat__main">
         <div id="messages" class="chat__messages"></div>
         <div class="compose">
@@ -36,6 +38,20 @@
         </p>
         <p>{{message}}</p>
       </div>
+    </script>
+
+    <script id="sidebar-template" type="text/html">
+      <h2 class="room-title">{{room}}</h2>
+      <h3 class="list-title">Users</h3>
+      <ul class="users">
+        <!-- opening of the array -->
+        {{#users}}
+
+          <li>{{username}}</li>
+
+        <!-- closing of the arry -->
+        {{/users}}
+      </ul>
     </script>
 
     <script id="location-message-template" type="text/html">

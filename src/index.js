@@ -14,6 +14,12 @@ const {
   getUsersInRoom,
 } = require("./utils/users");
 
+// socket.emit - send event to specific client
+// io.emit - send event to every connected client
+// socket.broadcast.emit - send event to every connected client except for this one
+// io.to.emit - emit event to everyone in a specific chat room
+// socket.broadcast.to.emit - emit event to everyone except for this client but only to in a specific room
+
 const app = express();
 const server = http.createServer(app);
 const io = socketio(server);
@@ -44,11 +50,12 @@ io.on("connection", (socket) => {
         generateMessage("System:", `${user.username} has joined the chat`)
       ); //send to everyone except to this particular socket in the room
 
-    // socket.emit - send event to specific client
-    // io.emit - send event to every connected client
-    // socket.broadcast.emit - send event to every connected client except for this one
-    // io.to.emit - emit event to everyone in a specific chat room
-    // socket.broadcast.to.emit - emit event to everyone except for this client but only to in a specific room
+    io.to(user.room).emit("roomData", {
+      room: user.room,
+      users: getUsersInRoom(user.room),
+    });
+
+    callbackForAcknowledgement();
   });
 
   socket.on("sendMessage", (message, callbackForAcknowledgement) => {
@@ -84,6 +91,10 @@ io.on("connection", (socket) => {
         "message",
         generateMessage("System", `${leftUser.username} has left the chat`)
       );
+      io.to(leftUser.room).emit("roomData", {
+        room: leftUser.room,
+        users: getUsersInRoom(leftUser.room),
+      });
     }
   });
 });
