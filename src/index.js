@@ -36,10 +36,13 @@ io.on("connection", (socket) => {
 
     socket.join(user.room);
 
-    socket.emit("message", generateMessage("Welcome!")); //emit to this particular connection
+    socket.emit("message", generateMessage("System:", "Welcome!")); // emit to this particular connection
     socket.broadcast
       .to(user.room)
-      .emit("message", generateMessage(`${user.username} has joined!`)); //send to everyone except to this particular socket in the room
+      .emit(
+        "message",
+        generateMessage("System:", `${user.username} has joined the chat`)
+      ); //send to everyone except to this particular socket in the room
 
     // socket.emit - send event to specific client
     // io.emit - send event to every connected client
@@ -49,34 +52,37 @@ io.on("connection", (socket) => {
   });
 
   socket.on("sendMessage", (message, callbackForAcknowledgement) => {
+    const user = getUser(socket.id);
     const filter = new Filter();
 
     if (filter.isProfane(message)) {
       return callbackForAcknowledgement("Profanity is not allowed!");
     }
 
-    io.to("General").emit("message", generateMessage(message));
+    io.to(user.room).emit("message", generateMessage(user.username, message));
     callbackForAcknowledgement(); //acknowledgement callback
   });
 
   socket.on("sendLocation", (coords, callbackForAcknowledgement) => {
-    io.emit(
+    const user = getUser(socket.id);
+    io.to(user.room).emit(
       "locationMessage",
       generateLocationMessages(
+        user.username,
         `https://google.com/maps?q=${coords.latitude},${coords.longitude}`
       )
     );
     callbackForAcknowledgement();
   });
 
-  //code that runs when client disconnects
+  // Code that runs when client disconnects
   socket.on("disconnect", () => {
     const leftUser = removeUser(socket.id);
 
     if (leftUser) {
       io.to(leftUser.room).emit(
         "message",
-        generateMessage(`${leftUser.username} has left the chat`)
+        generateMessage("System", `${leftUser.username} has left the chat`)
       );
     }
   });
