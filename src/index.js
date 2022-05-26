@@ -3,6 +3,10 @@ const http = require("http");
 const express = require("express");
 const socketio = require("socket.io");
 const Filter = require("bad-words");
+const {
+  generateMessage,
+  generateLocationMessages,
+} = require("./utils/messages");
 
 const app = express();
 const server = http.createServer(app);
@@ -16,8 +20,8 @@ app.use(express.static(publicDirectoryPath));
 io.on("connection", (socket) => {
   console.log("New WebSocket connection");
 
-  socket.emit("message", "Welcome!"); //emit to this particular connection
-  socket.broadcast.emit("message", "New user joined the chat"); //send to everyone except to this particular socket
+  socket.emit("message", generateMessage("Welcome!")); //emit to this particular connection
+  socket.broadcast.emit("message", generateMessage("New user joined the chat")); //send to everyone except to this particular socket
 
   socket.on("sendMessage", (message, callbackForAcknowledgement) => {
     const filter = new Filter();
@@ -26,21 +30,23 @@ io.on("connection", (socket) => {
       return callbackForAcknowledgement("Profanity is not allowed!");
     }
 
-    io.emit("message", message); //emit to everyone
+    io.emit("message", generateMessage(message)); //emit to everyone
     callbackForAcknowledgement(); //acknowledgement callback
   });
 
   socket.on("sendLocation", (coords, callbackForAcknowledgement) => {
     io.emit(
       "locationMessage",
-      `https://google.com/maps?q=${coords.latitude},${coords.longitude}`
+      generateLocationMessages(
+        `https://google.com/maps?q=${coords.latitude},${coords.longitude}`
+      )
     );
     callbackForAcknowledgement();
   });
 
   //code that runs when client disconnects
   socket.on("disconnect", () => {
-    io.emit("message", "User has left the chat");
+    io.emit("message", generateMessage("User has left the chat"));
   });
 });
 
