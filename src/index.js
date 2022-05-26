@@ -20,8 +20,20 @@ app.use(express.static(publicDirectoryPath));
 io.on("connection", (socket) => {
   console.log("New WebSocket connection");
 
-  socket.emit("message", generateMessage("Welcome!")); //emit to this particular connection
-  socket.broadcast.emit("message", generateMessage("New user joined the chat")); //send to everyone except to this particular socket
+  socket.on("join", ({ username, room }) => {
+    socket.join(room);
+
+    socket.emit("message", generateMessage("Welcome!")); //emit to this particular connection
+    socket.broadcast
+      .to(room)
+      .emit("message", generateMessage(`${username} has joined!`)); //send to everyone except to this particular socket in the room
+
+    // socket.emit - send event to specific client
+    // io.emit - send event to every connected client
+    // socket.broadcast.emit - send event to every connected client except for this one
+    // io.to.emit - emit event to everyone in a specific chat room
+    // socket.broadcast.to.emit - emit event to everyone except for this client but only to in a specific room
+  });
 
   socket.on("sendMessage", (message, callbackForAcknowledgement) => {
     const filter = new Filter();
@@ -30,7 +42,7 @@ io.on("connection", (socket) => {
       return callbackForAcknowledgement("Profanity is not allowed!");
     }
 
-    io.emit("message", generateMessage(message)); //emit to everyone
+    io.to("General").emit("message", generateMessage(message));
     callbackForAcknowledgement(); //acknowledgement callback
   });
 

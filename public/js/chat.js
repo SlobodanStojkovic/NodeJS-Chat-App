@@ -1,6 +1,6 @@
 const socket = io();
 
-//Elements
+// Elements
 const $messageForm = document.querySelector("#message-form");
 const $messageFormInput = $messageForm.querySelector("input");
 const $messageFormButton = $messageForm.querySelector("button");
@@ -12,6 +12,13 @@ const messageTemplate = document.querySelector("#message-template").innerHTML;
 const locationMessageTemplate = document.querySelector(
   "#location-message-template"
 ).innerHTML;
+
+// Options
+const { username, room } = Qs.parse(location.search, {
+  ignoreQueryPrefix: true,
+});
+
+console.log(username, room);
 
 socket.on("message", (message) => {
   console.log(message);
@@ -34,14 +41,14 @@ socket.on("locationMessage", (message) => {
 $messageForm.addEventListener("submit", (e) => {
   e.preventDefault();
 
-  //disable form button to prevent accidental double clicks and sending same message twice
+  // disable form button to prevent accidental double clicks and sending same message twice
   $messageFormButton.setAttribute("disabled", "disabled");
 
   const message = e.target.elements.message.value; //target represents target that we listen through the event on, and in this case it is the form, elements we have access to our elements property and we can access any of our inputs by their name, message.value gives out value of our input with name="message"
 
-  //callback function is a event acknowledgement
+  // callback function is a event acknowledgement
   socket.emit("sendMessage", message, (error) => {
-    //enable send button
+    // enable send button
     $messageFormButton.removeAttribute("disabled");
 
     $messageFormInput.value = "";
@@ -76,3 +83,5 @@ $sendLocationButton.addEventListener("click", () => {
     );
   });
 });
+
+socket.emit("join", { username, room });

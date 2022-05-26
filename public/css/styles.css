@@ -38,7 +38,7 @@ input {
 }
 
 button {
-  background: #7c5cbf;
+  background: rgb(69, 69, 235);
   border-radius: 5px;
   border: none;
   color: white;
@@ -49,11 +49,11 @@ button {
 }
 
 button:hover {
-  background: #6b47b8;
+  background: skyblue;
 }
 
 button:disabled {
-  background: #7c5cbf94;
+  background: skyblue;
   cursor: default;
 }
 
@@ -70,6 +70,7 @@ button:disabled {
 
 .centered-form__box {
   background: #f7f7fa;
+  border-radius: 5px;
   box-shadow: 0px 0px 17px 1px #1d1f26;
   padding: 24px;
   width: 250px;
